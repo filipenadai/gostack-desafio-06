@@ -39,9 +39,9 @@ class ImportTransactionsService {
       categories.push(category);
 
       transactions.push({ title, type, value, category });
-
-      await new Promise(resolve => parseCSV.on('end', resolve));
     });
+
+    await new Promise(resolve => parseCSV.on('end', resolve));
 
     const existentCategories = await categoriesRepository.find({
       where: {
