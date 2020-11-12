@@ -4,7 +4,7 @@ import multer from 'multer';
 
 import TransactionsRepository from '../repositories/TransactionsRepository';
 import CreateTransactionService from '../services/CreateTransactionService';
-// import DeleteTransactionService from '../services/DeleteTransactionService';
+import DeleteTransactionService from '../services/DeleteTransactionService';
 import ImportTransactionsService from '../services/ImportTransactionsService';
 
 import uploadConfig from '../config/upload';
@@ -37,11 +37,11 @@ transactionsRouter.post('/', async (request, response) => {
 });
 
 transactionsRouter.delete('/:id', async (request, response) => {
-  const transactionsRepository = getCustomRepository(TransactionsRepository);
-
   const { id } = request.params;
 
-  await transactionsRepository.delete({ id });
+  const deleteTransaction = new DeleteTransactionService();
+
+  await deleteTransaction.execute(id);
 
   return response.status(204).send();
 });
@@ -50,23 +50,11 @@ transactionsRouter.post(
   '/import',
   upload.single('file'),
   async (request, response) => {
-    const importCsvTransaction = new ImportTransactionsService();
-    const createTransaction = new CreateTransactionService();
+    const importTransactions = new ImportTransactionsService();
 
-    const transactionCsv = await importCsvTransaction.execute({
-      csvFileName: request.file.filename,
-    });
+    const transactions = importTransactions.execute(request.file.path);
 
-    transactionCsv.map(async transaction => {
-      await createTransaction.execute({
-        title: transaction.title,
-        type: transaction.type,
-        value: transaction.value,
-        category: transaction.category,
-      });
-    });
-
-    return response.status(200).json(transactionCsv);
+    return response.json(transactions);
   },
 );
 

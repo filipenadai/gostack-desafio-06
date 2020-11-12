@@ -28,25 +28,23 @@ class CreateTransactionService {
       throw new AppError('Not money for this transaction', 400);
     }
 
-    let createCategory;
-
-    const findCategory = await cateogriesRepository.findOne({
+    let transactionCategory = await cateogriesRepository.findOne({
       title: category,
     });
 
-    if (!findCategory) {
-      createCategory = cateogriesRepository.create({
+    if (!transactionCategory) {
+      transactionCategory = cateogriesRepository.create({
         title: category,
       });
-    } else createCategory = findCategory;
 
-    const transactionCategory = await cateogriesRepository.save(createCategory);
+      await cateogriesRepository.save(transactionCategory);
+    }
 
     const transaction = transactionsRepository.create({
       title,
       value,
       type,
-      category_id: transactionCategory.id,
+      category: transactionCategory,
     });
 
     await transactionsRepository.save(transaction);
